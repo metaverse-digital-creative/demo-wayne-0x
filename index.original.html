@@ -1,63 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Access Required</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, sans-serif; background: #0a0e1a; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  .gate { text-align: center; padding: 40px; }
-  .gate h1 { font-size: 24px; color: #d4a853; margin-bottom: 8px; }
-  .gate p { color: #94a3b8; margin-bottom: 24px; font-size: 14px; }
-  .gate input { background: #1e293b; border: 1px solid #2d3a4f; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 16px; width: 260px; text-align: center; outline: none; }
-  .gate input:focus { border-color: #d4a853; }
-  .gate button { background: #d4a853; color: #0a0e1a; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-left: 8px; }
-  .gate button:hover { background: #e6c171; }
-  .gate .error { color: #f43f5e; margin-top: 12px; font-size: 13px; display: none; }
-  .row { display: flex; gap: 8px; justify-content: center; }
-</style>
-</head>
-<body>
-<div class="gate" id="gate">
-  <h1>🔒 Silicon Valley AI</h1>
-  <p>Enter your access code to view this demo</p>
-  <div class="row">
-    <input type="password" id="pw" placeholder="Access code" autofocus>
-    <button onclick="unlock()">Enter</button>
-  </div>
-  <div class="error" id="err">Invalid code. Try again.</div>
-</div>
-<div id="app" style="display:none"></div>
-<script>
-// HASH is SHA-256 of the password — password never stored in source
-const HASH = '365e4ee936554327e793f0e87c721311e6e3a72d82cede60890442abd6ea404d';
-async function sha256(msg) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-async function unlock() {
-  const pw = document.getElementById('pw').value;
-  const h = await sha256(pw);
-  if (h === HASH) {
-    sessionStorage.setItem('sv-auth', h);
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('app').innerHTML = CONTENT;
-  } else {
-    document.getElementById('err').style.display = 'block';
-  }
-}
-document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
-// Auto-unlock if already authenticated this session
-(async () => {
-  if (sessionStorage.getItem('sv-auth') === HASH) {
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('app').innerHTML = CONTENT;
-  }
-})();
-const CONTENT = `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -325,33 +266,33 @@ function render() {
   }
   avgProfit = (avgProfit / count).toFixed(1);
 
-  document.getElementById('statsGrid').innerHTML = \`
-    <div class="stat-card highlight"><div class="stat-value">\${totalOpps}</div><div class="stat-label">高機會格子 (density < 0.5)</div></div>
-    <div class="stat-card"><div class="stat-value">\${bestOpp.mat?.emoji || ''} → \${bestOpp.mkt?.flag || ''}</div><div class="stat-label">最佳機會</div></div>
-    <div class="stat-card warn"><div class="stat-value">\${avgProfit}x</div><div class="stat-label">平均利潤倍數</div></div>
-    <div class="stat-card"><div class="stat-value">\${tariffPct > 0 ? '🔥 活躍' : '😴 平靜'}</div><div class="stat-label">關稅套利環境</div></div>
-  \`;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card highlight"><div class="stat-value">${totalOpps}</div><div class="stat-label">高機會格子 (density < 0.5)</div></div>
+    <div class="stat-card"><div class="stat-value">${bestOpp.mat?.emoji || ''} → ${bestOpp.mkt?.flag || ''}</div><div class="stat-label">最佳機會</div></div>
+    <div class="stat-card warn"><div class="stat-value">${avgProfit}x</div><div class="stat-label">平均利潤倍數</div></div>
+    <div class="stat-card"><div class="stat-value">${tariffPct > 0 ? '🔥 活躍' : '😴 平靜'}</div><div class="stat-label">關稅套利環境</div></div>
+  `;
 
   // Heatmap
   let html = '<thead><tr><th class="row-header">廢料品類</th>';
-  for (const mkt of filteredMarkets) html += \`<th>\${mkt.flag} \${mkt.name}</th>\`;
+  for (const mkt of filteredMarkets) html += `<th>${mkt.flag} ${mkt.name}</th>`;
   html += '<th>Avg</th></tr></thead><tbody>';
 
   for (const mat of materials) {
-    html += \`<tr><td class="row-label">\${mat.emoji} \${mat.name}</td>\`;
+    html += `<tr><td class="row-label">${mat.emoji} ${mat.name}</td>`;
     let rowSum = 0;
     for (const mkt of filteredMarkets) {
       const d = data[mat.id][mkt.id];
       rowSum += d;
       const arbScore = getArbitrageScore(d);
       const profit = getProfitMultiple(mat.id, mkt.id, tariffPct);
-      html += \`<td style="background:\${densityToColor(d)}" onclick="showDetail('\${mat.id}','\${mkt.id}')">
-        <div class="cell-val">\${arbScore}</div>
-        <div class="cell-sub">\${profit}x</div>
-      </td>\`;
+      html += `<td style="background:${densityToColor(d)}" onclick="showDetail('${mat.id}','${mkt.id}')">
+        <div class="cell-val">${arbScore}</div>
+        <div class="cell-sub">${profit}x</div>
+      </td>`;
     }
     const avg = (rowSum / filteredMarkets.length).toFixed(2);
-    html += \`<td style="color:#888">\${(((1 - avg) * 100).toFixed(0))}</td>\`;
+    html += `<td style="color:#888">${(((1 - avg) * 100).toFixed(0))}</td>`;
     html += '</tr>';
   }
   html += '</tbody>';
@@ -366,14 +307,14 @@ function render() {
   top8.forEach((opp, i) => {
     const pct = (opp.score / maxScore * 100).toFixed(0);
     const color = opp.profit > 5 ? '#00ff88' : opp.profit > 2 ? '#ffd700' : '#ff8844';
-    rankHtml += \`
+    rankHtml += `
       <div class="bar-row">
-        <div class="bar-label">\${opp.mat.emoji} → \${opp.mkt.flag}</div>
+        <div class="bar-label">${opp.mat.emoji} → ${opp.mkt.flag}</div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:\${pct}%;background:\${color}">\${opp.mat.name}</div>
+          <div class="bar-fill" style="width:${pct}%;background:${color}">${opp.mat.name}</div>
         </div>
-        <div class="bar-value" style="color:\${color}">\${opp.profit}x</div>
-      </div>\`;
+        <div class="bar-value" style="color:${color}">${opp.profit}x</div>
+      </div>`;
   });
   document.getElementById('rankingChart').innerHTML = rankHtml;
 }
@@ -401,24 +342,24 @@ function showDetail(matId, mktId) {
     'glass': '玻璃可無限回收，但運輸成本高，適合區域性操作。',
   };
 
-  document.getElementById('detailPanel').innerHTML = \`
+  document.getElementById('detailPanel').innerHTML = `
     <h2>📊 套利機會分析</h2>
     <div class="detail-content">
-      <h3>\${mat.emoji} \${mat.name} → \${mkt.flag} \${mkt.name}</h3>
-      <div class="metric"><span class="metric-label">Edge Density</span><span class="metric-value \${density < 0.4 ? 'positive' : density < 0.6 ? 'neutral' : 'negative'}">\${density.toFixed(2)} (\${density < 0.4 ? '🔥 低密度=高機會' : density < 0.6 ? '⚡ 中等' : '😐 高密度=飽和'})</span></div>
-      <div class="metric"><span class="metric-label">套利分數</span><span class="metric-value positive">\${getArbitrageScore(density)} / 100</span></div>
-      <div class="metric"><span class="metric-label">廢料收購價</span><span class="metric-value">\$\${p.buy}/噸</span></div>
-      <div class="metric"><span class="metric-label">處理成本</span><span class="metric-value">\$\${p.process}/噸</span></div>
-      <div class="metric"><span class="metric-label">市場售價 (\${mkt.name})</span><span class="metric-value positive">\$\${sellPrice}/噸</span></div>
-      \${tariffPct > 0 ? \`<div class="metric"><span class="metric-label">關稅成本</span><span class="metric-value negative">+\$\${tariffCost}/噸</span></div>\` : ''}
-      <div class="metric"><span class="metric-label">利潤倍數</span><span class="metric-value \${profit > 3 ? 'positive' : profit > 1 ? 'neutral' : 'negative'}">\${profit}x</span></div>
+      <h3>${mat.emoji} ${mat.name} → ${mkt.flag} ${mkt.name}</h3>
+      <div class="metric"><span class="metric-label">Edge Density</span><span class="metric-value ${density < 0.4 ? 'positive' : density < 0.6 ? 'neutral' : 'negative'}">${density.toFixed(2)} (${density < 0.4 ? '🔥 低密度=高機會' : density < 0.6 ? '⚡ 中等' : '😐 高密度=飽和'})</span></div>
+      <div class="metric"><span class="metric-label">套利分數</span><span class="metric-value positive">${getArbitrageScore(density)} / 100</span></div>
+      <div class="metric"><span class="metric-label">廢料收購價</span><span class="metric-value">$${p.buy}/噸</span></div>
+      <div class="metric"><span class="metric-label">處理成本</span><span class="metric-value">$${p.process}/噸</span></div>
+      <div class="metric"><span class="metric-label">市場售價 (${mkt.name})</span><span class="metric-value positive">$${sellPrice}/噸</span></div>
+      ${tariffPct > 0 ? `<div class="metric"><span class="metric-label">關稅成本</span><span class="metric-value negative">+$${tariffCost}/噸</span></div>` : ''}
+      <div class="metric"><span class="metric-label">利潤倍數</span><span class="metric-value ${profit > 3 ? 'positive' : profit > 1 ? 'neutral' : 'negative'}">${profit}x</span></div>
       <div class="insight">
-        <strong>💡 市場洞察：</strong>\${insights[matId]}
-        \${tariffPct > 0 && tariffSensitivity[mktId] > 0.5 ? \`<br><br>⚠️ <strong>關稅影響：</strong>\${mkt.name} 受 Trump 關稅影響較大（敏感度 \${(tariffSensitivity[mktId]*100).toFixed(0)}%），可考慮轉向低敏感度市場。\` : ''}
-        \${density < 0.35 ? \`<br><br>🎯 <strong>建議：</strong>此路徑 edge density 極低，代表競爭者少、資訊不對稱大。建議優先建立此通道，成為樞紐節點。\` : ''}
+        <strong>💡 市場洞察：</strong>${insights[matId]}
+        ${tariffPct > 0 && tariffSensitivity[mktId] > 0.5 ? `<br><br>⚠️ <strong>關稅影響：</strong>${mkt.name} 受 Trump 關稅影響較大（敏感度 ${(tariffSensitivity[mktId]*100).toFixed(0)}%），可考慮轉向低敏感度市場。` : ''}
+        ${density < 0.35 ? `<br><br>🎯 <strong>建議：</strong>此路徑 edge density 極低，代表競爭者少、資訊不對稱大。建議優先建立此通道，成為樞紐節點。` : ''}
       </div>
     </div>
-  \`;
+  `;
 }
 
 // Event listeners
@@ -431,8 +372,3 @@ render();
 </script>
 </body>
 </html>
-`;
-</script>
-</body>
-</html>
-
